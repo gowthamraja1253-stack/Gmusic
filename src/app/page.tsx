@@ -2,34 +2,54 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { PlayCircle, TrendingUp } from 'lucide-react';
-import { fetchTrendingTamil } from '@/lib/api';
+import { PlayCircle, TrendingUp, Clock } from 'lucide-react';
+import { fetchTrendingTamil, searchSongs } from '@/lib/api';
+import { useLibraryStore } from '@/store/useLibraryStore';
+import { useProfileStore } from '@/store/useProfileStore';
+import { useAnalyticsStore } from '@/store/useAnalyticsStore';
 import { SongCard } from '@/components/shared/SongCard';
 import { Song } from '@/types';
 import { motion } from 'framer-motion';
-import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 import { DynamicGreeting } from '@/components/home/DynamicGreeting';
 import { ListeningStatsBanner } from '@/components/home/ListeningStatsBanner';
 import { TimeState } from '@/lib/time';
+import { Sparkles } from 'lucide-react';
 
 export default function Home() {
   const [trending, setTrending] = useState<Song[]>([]);
+  const [recommended, setRecommended] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<TimeState | null>(null);
+  
+  const { recentlyPlayed } = useLibraryStore();
+  const { activeProfileId } = useProfileStore();
+  const { getAnalytics } = useAnalyticsStore();
 
   useEffect(() => {
     const loadData = async () => {
+      // 1. Load Trending
       const data = await fetchTrendingTamil();
       setTrending(data);
+      
+      // 2. Compute Recommendations
+      let artistQuery = 'Anirudh';
+      if (activeProfileId) {
+        const stats = getAnalytics(activeProfileId);
+        if (stats && Object.keys(stats.artistPlays).length > 0) {
+          const sortedArtists = Object.entries(stats.artistPlays).sort((a, b) => b[1] - a[1]);
+          artistQuery = sortedArtists[0][0]; 
+        }
+      }
+      const recs = await searchSongs(artistQuery);
+      setRecommended(recs.slice(0, 5));
+      
       setLoading(false);
     };
     loadData();
-  }, []);
+  }, [activeProfileId, getAnalytics]);
 
   return (
     <div className="flex flex-col min-h-screen">
-      <WelcomeModal />
-
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 pb-32 transition-colors duration-1000">
         <div 
@@ -73,8 +93,39 @@ export default function Home() {
         </div>
       </section>
 
+      {recentlyPlayed.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full -mt-8 relative z-20 mb-12">
+          <div className="flex items-center gap-2 mb-6">
+            <Clock className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-bold text-white">Recently Played</h2>
+          </div>
+          <div className="flex overflow-x-auto gap-6 pb-4 custom-scrollbar snap-x">
+            {recentlyPlayed.slice(0, 8).map((song, index) => (
+              <div key={song.id} className="min-w-[160px] sm:min-w-[200px] snap-start">
+                <SongCard song={song} queue={recentlyPlayed} priority={index < 3} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Recommended Section */}
+      {recommended.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-20 mb-16">
+          <div className="flex items-center gap-2 mb-8">
+            <Sparkles className="w-6 h-6 text-yellow-400" />
+            <h2 className="text-2xl font-bold text-white">Recommended For You</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {recommended.map((song) => (
+              <SongCard key={`rec-${song.id}`} song={song} queue={recommended} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Trending Section Preview */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full -mt-16 relative z-20 mb-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-20 mb-20">
         <div className="flex items-center gap-2 mb-8">
           <TrendingUp className="w-6 h-6 text-primary" />
           <h2 className="text-2xl font-bold text-white">Trending Now</h2>
@@ -92,8 +143,8 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {trending.slice(0, 5).map((song) => (
-              <SongCard key={song.id} song={song} queue={trending} />
+            {trending.slice(0, 5).map((song, index) => (
+              <SongCard key={song.id} song={song} queue={trending} priority={index < 4} />
             ))}
           </div>
         )}

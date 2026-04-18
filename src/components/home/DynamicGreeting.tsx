@@ -2,14 +2,16 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useProfileStore } from '@/store/useProfileStore';
 import { getTimeState, TimeState } from '@/lib/time';
 
 export const DynamicGreeting = ({ onThemeUpdate }: { onThemeUpdate?: (theme: TimeState) => void }) => {
-  const { userName, isReady } = useUserPreferences();
+  const { profiles, activeProfileId } = useProfileStore();
   const [timeState, setTimeState] = useState<TimeState | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const state = getTimeState();
     setTimeState(state);
     if (onThemeUpdate) {
@@ -17,8 +19,9 @@ export const DynamicGreeting = ({ onThemeUpdate }: { onThemeUpdate?: (theme: Tim
     }
   }, [onThemeUpdate]);
 
-  // Don't render until client state rehydrates to avoid hydration mismatch
-  if (!isReady || !timeState || !userName) return null;
+  if (!mounted || !timeState || !activeProfileId) return null;
+
+  const activeProfile = profiles.find(p => p.id === activeProfileId);
 
   return (
     <AnimatePresence>
@@ -29,7 +32,7 @@ export const DynamicGreeting = ({ onThemeUpdate }: { onThemeUpdate?: (theme: Tim
         className="mb-4 inline-block px-4 py-1.5 rounded-full glass border border-white/10"
       >
         <span className="text-sm md:text-base font-medium text-gray-200">
-          {timeState.greeting}, <span className="text-white font-bold">{userName}</span> 🎧
+          {timeState.greeting}, <span className="text-white font-bold">{activeProfile?.name || 'Guest'}</span> 🎧
         </span>
       </motion.div>
     </AnimatePresence>

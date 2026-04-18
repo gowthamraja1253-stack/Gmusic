@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gmusic</string>
+    <string name="title_activity_main">Gmusic</string>
+    <string name="package_name">com.gowtham.music</string>
+    <string name="custom_url_scheme">com.gowtham.music</string>
+</resources>

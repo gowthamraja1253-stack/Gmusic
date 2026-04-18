@@ -4,6 +4,8 @@ import './globals.css';
 import { Navigation } from '@/components/layout/Navigation';
 import { MusicPlayer } from '@/components/player/MusicPlayer';
 import { BreakReminderModal } from '@/components/player/BreakReminderModal';
+import { ProfileGate } from '@/components/profile/ProfileGate';
+import { ToastProvider } from '@/components/shared/ToastProvider';
 
 export const metadata: Metadata = {
   title: 'Gmusic - Feel the Isai',
@@ -18,12 +20,15 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="antialiased min-h-screen pb-24">
-        <Navigation />
-        <main className="pt-16">
-          {children}
-        </main>
-        <BreakReminderModal />
-        <MusicPlayer />
+        <ProfileGate>
+          <Navigation />
+          <main className="pt-16">
+            {children}
+          </main>
+          <BreakReminderModal />
+          <MusicPlayer />
+          <ToastProvider />
+        </ProfileGate>
       </body>
     </html>
   );
