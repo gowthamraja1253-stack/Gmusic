@@ -1,4 +1,4 @@
-# TamilBeats - Modern Tamil Music Web Application 🎧
+# Gmusic - Modern Tamil Music Web Application 🎧
 
 TamilBeats is a fully responsive, visually stunning web application built to discover and play the latest and trending Tamil music. It features an engaging dark-themed user interface, glassmorphism design, and a robust global music player, all powered by a free JioSaavn unofficial API.
 
