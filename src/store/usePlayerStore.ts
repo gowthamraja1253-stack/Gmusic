@@ -29,7 +29,7 @@ interface PlayerState {
   removeFromQueue: (index: number) => void;
 }
 
-const shuffleArray = (array: any[]) => {
+const shuffleArray = <T,>(array: T[]) => {
   const newArr = [...array];
   for (let i = newArr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -51,7 +51,12 @@ export const usePlayerStore = create<PlayerState>()(
       lastProgress: 0,
 
       setCurrentSong: (song) => {
-        set({ currentSong: song, isPlaying: true });
+        const previousSongId = get().currentSong?.id;
+        set({
+          currentSong: song,
+          isPlaying: true,
+          lastProgress: previousSongId === song.id ? get().lastProgress : 0,
+        });
         
         // Add to recently played via library store (Global history tracking)
         import('./useLibraryStore').then(({ useLibraryStore }) => {
@@ -119,7 +124,7 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       toggleShuffle: () => {
-        const { isShuffle, originalQueue, currentSong, queue } = get();
+        const { isShuffle, originalQueue, currentSong } = get();
         const nextShuffle = !isShuffle;
         
         if (nextShuffle) {

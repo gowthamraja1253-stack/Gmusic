@@ -4,7 +4,13 @@ export interface Artist {
   role: string;
   type: string;
   url: string;
-  image?: { quality: string; link: string }[];
+  image?: MediaAsset[];
+}
+
+export interface MediaAsset {
+  quality: string;
+  link: string;
+  url?: string;
 }
 
 export interface Song {
@@ -19,8 +25,8 @@ export interface Song {
   hasLyrics: boolean;
   url: string;
   copyright: string;
-  image: { quality: string; link: string }[];
-  downloadUrl: { quality: string; link: string }[];
+  image: MediaAsset[];
+  downloadUrl: MediaAsset[];
   artists: {
     primary: Artist[];
     featured: Artist[];
